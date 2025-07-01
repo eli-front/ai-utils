@@ -22,6 +22,7 @@ import { AiTextGenerationToolInputWithFunction } from "./types";
  * @param {number} [config.maxRecursiveToolRuns=0] - The maximum number of recursive tool runs to perform.
  * @param {boolean} [config.strictValidation=false] - Whether to perform strict validation (using zod) of the arguments passed to the tools.
  * @param {boolean} [config.verbose=false] - Whether to enable verbose logging.
+ * @param {number} [config.maxOutputTokens] - Maximum number of output tokens to generate.
  * @param {(tools: AiTextGenerationToolInputWithFunction[], ai: Ai, model: BaseAiTextGenerationModels, messages: RoleScopedChatInput[]) => Promise<AiTextGenerationToolInputWithFunction[]>} [config.trimFunction] - Use a trim function to trim down the number of tools given to the AI for a given task. You can also use this alongside `autoTrimTools`, which uses an extra AI.run call to cut down on the input tokens of the tool call based on the tool's names.
  *
  * @returns {Promise<AiTextGenerationOutput>} The final response in the same format as the AI.run call.
@@ -48,7 +49,8 @@ export const runWithTools = async (
 		strictValidation?: boolean;
 		/** Whether to enable verbose logging. */
 		verbose?: boolean;
-
+		/** Maximum number of output tokens to generate. */
+		maxOutputTokens?: number;
 		/** Automatically decides the best tools to use for a given task. */
 		trimFunction?: (
 			tools: AiTextGenerationToolInputWithFunction[],
@@ -127,6 +129,7 @@ export const runWithTools = async (
 				messages: messages,
 				stream: false,
 				tools: tools,
+				max_tokens: config.maxOutputTokens,
 			})) as {
 				response?: string;
 				tool_calls?: {
@@ -213,7 +216,7 @@ export const runWithTools = async (
 					Logger.error(
 						`Function for tool ${toolCallObjectJson.name} is undefined`,
 					);
-          return response
+					return response
 				}
 			});
 
